@@ -1,6 +1,7 @@
 plugins {
     id 'java-library'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.openapi.generator' version '7.12.0'
 }
 
 group = 'cm.fastrelay'
@@ -35,6 +36,8 @@ dependencies {
     api 'org.springframework.boot:spring-boot-starter-data-jpa'
     api 'org.springframework.boot:spring-boot-starter-security'
     api 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+    api 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation("org.openapitools:openapi-generator:7.12.0")
 
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
@@ -47,3 +50,36 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
+tasks.register('keycloakOpenApiGenerate', GenerateTask) {
+    generatorName = "spring"
+    templateDir = "$projectDir/../openapi/templates/spring-http-interface".toString()
+    inputSpec = "$projectDir/../openapi/keycloak.yaml".toString()
+    outputDir = layout.buildDirectory.dir("generated/sources/openapi").get().asFile.path
+    apiPackage = "cm.fastrelay.keycloak.api"
+    modelPackage = "cm.fastrelay.keycloak.dto"
+    modelNamePrefix = "Keycloak"
+    modelNameSuffix = "Dto"
+    configOptions = [
+            dateLibrary  : "java8-localdatetime",
+            library      : "spring-http-interface",
+            interfaceOnly: "true",
+            useTags      : "true",
+    ]
+    typeMappings = [
+            time: "java.time.LocalTime",
+    ]
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir layout.buildDirectory.file("generated/sources/openapi/src/main/java").get().asFile.path
+        }
+    }
+}
+
+compileJava.dependsOn(
+        tasks.keycloakOpenApiGenerate
+)
