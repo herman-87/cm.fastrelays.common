@@ -9,7 +9,7 @@ description = 'Common classes and methods that need all my projects'
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion.set(JavaLanguageVersion.of(21))
     }
 }
 
